@@ -20,7 +20,7 @@ import cpc.feature_loader as fl
 from cpc.cpc_default_config import set_default_cpc_config
 from cpc.dataset import AudioBatchData, findAllSeqs, filterSeqs, parseSeqLabels
 
-from cpc.traffic_datasets import get_dummy_data_loader
+from cpc.traffic_datasets import get_dummy_data_loader, get_waikato_snippet
 
 
 def getCriterion(args, downsampling, nSpeakers, nPhones):
@@ -183,12 +183,14 @@ def run(trainDataset,
         # trainLoader = trainDataset.getDataLoader(batchSize, samplingMode,
         #                                          True, numWorkers=0)
 
-        trainLoader = get_dummy_data_loader()
+        # trainLoader = get_dummy_data_loader(batch_size=batchSize)
+        trainLoader = get_waikato_snippet(batch_size=batchSize)
 
         # valLoader = valDataset.getDataLoader(batchSize, 'sequential', False,
         #                                      numWorkers=0)
 
-        valLoader = get_dummy_data_loader()
+        valLoader = get_dummy_data_loader(batch_size=batchSize)
+        valLoader = get_waikato_snippet(batch_size=batchSize)
 
         print("Training dataset %d batches, Validation dataset %d batches, batch size %d" %
               (len(trainLoader), len(valLoader), batchSize))
