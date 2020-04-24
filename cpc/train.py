@@ -20,6 +20,8 @@ import cpc.feature_loader as fl
 from cpc.cpc_default_config import set_default_cpc_config
 from cpc.dataset import AudioBatchData, findAllSeqs, filterSeqs, parseSeqLabels
 
+from cpc.traffic_datasets import get_dummy_data_loader
+
 
 def getCriterion(args, downsampling, nSpeakers, nPhones):
     dimFeatures = args.hiddenGar if not args.onEncoder else args.hiddenEncoder
@@ -178,11 +180,15 @@ def run(trainDataset,
         print(f"Starting epoch {epoch}")
         utils.cpu_stats()
 
-        trainLoader = trainDataset.getDataLoader(batchSize, samplingMode,
-                                                 True, numWorkers=0)
+        # trainLoader = trainDataset.getDataLoader(batchSize, samplingMode,
+        #                                          True, numWorkers=0)
 
-        valLoader = valDataset.getDataLoader(batchSize, 'sequential', False,
-                                             numWorkers=0)
+        trainLoader = get_dummy_data_loader()
+
+        # valLoader = valDataset.getDataLoader(batchSize, 'sequential', False,
+        #                                      numWorkers=0)
+
+        valLoader = get_dummy_data_loader()
 
         print("Training dataset %d batches, Validation dataset %d batches, batch size %d" %
               (len(trainLoader), len(valLoader), batchSize))
@@ -246,28 +252,28 @@ def main(args):
     print(f'CONFIG:\n{json.dumps(vars(args), indent=4, sort_keys=True)}')
     print('-' * 50)
 
-    seqNames, speakers = findAllSeqs(args.pathDB,
-                                     extension=args.file_extension,
-                                     loadCache=not args.ignore_cache)
+    # seqNames, speakers = findAllSeqs(args.pathDB,
+    #                                  extension=args.file_extension,
+    #                                  loadCache=not args.ignore_cache)
 
-    print(f'Found files: {len(seqNames)} seqs, {len(speakers)} speakers')
+    # print(f'Found files: {len(seqNames)} seqs, {len(speakers)} speakers')
     # Datasets
-    if args.pathTrain is not None:
-        seqTrain = filterSeqs(args.pathTrain, seqNames)
-    else:
-        seqTrain = seqNames
+    # if args.pathTrain is not None:
+    #     seqTrain = filterSeqs(args.pathTrain, seqNames)
+    # else:
+    #     seqTrain = seqNames
 
-    if args.pathVal is None:
-        random.shuffle(seqTrain)
-        sizeTrain = int(0.99 * len(seqTrain))
-        seqTrain, seqVal = seqTrain[:sizeTrain], seqTrain[sizeTrain:]
-        print(f'Found files: {len(seqTrain)} train, {len(seqVal)} val')
-    else:
-        seqVal = filterSeqs(args.pathVal, seqNames)
+    # if args.pathVal is None:
+    #     random.shuffle(seqTrain)
+    #     sizeTrain = int(0.99 * len(seqTrain))
+    #     seqTrain, seqVal = seqTrain[:sizeTrain], seqTrain[sizeTrain:]
+    #     print(f'Found files: {len(seqTrain)} train, {len(seqVal)} val')
+    # else:
+    #     seqVal = filterSeqs(args.pathVal, seqNames)
 
-    if args.debug:
-        seqTrain = seqTrain[-1000:]
-        seqVal = seqVal[-100:]
+    # if args.debug:
+    #     seqTrain = seqTrain[-1000:]
+    #     seqVal = seqVal[-100:]
 
     phoneLabels, nPhones = None, None
     if args.supervised and args.pathPhone is not None:
@@ -278,23 +284,23 @@ def main(args):
     print("")
     print(f'Loading audio data at {args.pathDB}')
     print("Loading the training dataset")
-    trainDataset = AudioBatchData(args.pathDB,
-                                  args.sizeWindow,
-                                  seqTrain,
-                                  phoneLabels,
-                                  len(speakers),
-                                  nProcessLoader=args.n_process_loader,
-                                  MAX_SIZE_LOADED=args.max_size_loaded)
+    # trainDataset = AudioBatchData(args.pathDB,
+    #                               args.sizeWindow,
+    #                               seqTrain,
+    #                               phoneLabels,
+    #                               len(speakers),
+    #                               nProcessLoader=args.n_process_loader,
+    #                               MAX_SIZE_LOADED=args.max_size_loaded)
     print("Training dataset loaded")
     print("")
 
     print("Loading the validation dataset")
-    valDataset = AudioBatchData(args.pathDB,
-                                args.sizeWindow,
-                                seqVal,
-                                phoneLabels,
-                                len(speakers),
-                                nProcessLoader=args.n_process_loader)
+    # valDataset = AudioBatchData(args.pathDB,
+    #                             args.sizeWindow,
+    #                             seqVal,
+    #                             phoneLabels,
+    #                             len(speakers),
+    #                             nProcessLoader=args.n_process_loader)
     print("Validation dataset loaded")
     print("")
 
@@ -312,6 +318,8 @@ def main(args):
 
     batchSize = args.nGPU * args.batchSizeGPU
     cpcModel.supervised = args.supervised
+
+    speakers = []
 
     # Training criterion
     if args.load is not None and args.loadCriterion:
@@ -373,6 +381,9 @@ def main(args):
                                      device_ids=range(args.nGPU)).cuda()
     cpcCriterion = torch.nn.DataParallel(cpcCriterion,
                                          device_ids=range(args.nGPU)).cuda()
+
+    trainDataset = None
+    valDataset = None
 
     run(trainDataset,
         valDataset,
