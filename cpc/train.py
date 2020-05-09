@@ -20,7 +20,7 @@ import cpc.feature_loader as fl
 from cpc.cpc_default_config import set_default_cpc_config
 from cpc.dataset import AudioBatchData, findAllSeqs, filterSeqs, parseSeqLabels
 
-from cpc.traffic_datasets import get_dummy_data_loader, get_waikato_snippet
+from cpc.traffic_datasets import OverfitWaikatoSnippet
 
 
 def getCriterion(args, downsampling, nSpeakers, nPhones):
@@ -184,13 +184,12 @@ def run(trainDataset,
         #                                          True, numWorkers=0)
 
         # trainLoader = get_dummy_data_loader(batch_size=batchSize)
-        trainLoader = get_waikato_snippet(batch_size=batchSize)
+        trainLoader = trainDataset.getDataLoader(batchSize=batchSize)
 
         # valLoader = valDataset.getDataLoader(batchSize, 'sequential', False,
         #                                      numWorkers=0)
 
-        valLoader = get_dummy_data_loader(batch_size=batchSize)
-        valLoader = get_waikato_snippet(batch_size=batchSize)
+        valLoader = valDataset.getDataLoader(batchSize=batchSize)
 
         print("Training dataset %d batches, Validation dataset %d batches, batch size %d" %
               (len(trainLoader), len(valLoader), batchSize))
@@ -293,6 +292,7 @@ def main(args):
     #                               len(speakers),
     #                               nProcessLoader=args.n_process_loader,
     #                               MAX_SIZE_LOADED=args.max_size_loaded)
+    trainDataset = OverfitWaikatoSnippet()
     print("Training dataset loaded")
     print("")
 
@@ -303,8 +303,20 @@ def main(args):
     #                             phoneLabels,
     #                             len(speakers),
     #                             nProcessLoader=args.n_process_loader)
+    valDataset = OverfitWaikatoSnippet()
     print("Validation dataset loaded")
     print("")
+
+    from pathlib import Path
+    if args.pathCheckpoint is not None and \
+       not Path(args.pathCheckpoint).exists():
+        Path(args.pathCheckpoint).mkdir(parents=False, exist_ok=False)
+        with open(Path(args.pathCheckpoint)/"experiment_configs.json", 'w') as f:
+            arg_dict = args.__dict__
+            arg_dict["dataset_metadata"] = trainDataset.metadata()
+            print(arg_dict)
+            json.dump(arg_dict, f, sort_keys=True,
+                      indent=4, separators=(',', ': '))
 
     if args.load is not None:
         cpcModel, args.hiddenGar, args.hiddenEncoder = \
@@ -384,8 +396,6 @@ def main(args):
     cpcCriterion = torch.nn.DataParallel(cpcCriterion,
                                          device_ids=range(args.nGPU)).cuda()
 
-    trainDataset = None
-    valDataset = None
 
     run(trainDataset,
         valDataset,
