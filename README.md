@@ -1,5 +1,30 @@
 # CPC_audio
 
+Branch eyal/network_traffic
+
+Create environment: `conda env create -f environment.yml && conda activate cpc37`
+
+Install package: `python setup.py develop`
+
+Get training traces:
+```
+aws configure  # your API key here
+aws sync s3://drl-models/traffic-encoding ~/drl-models/traffic-encoding
+```
+
+Traces will be in `~/drl-models/traffic-encoding/preprocessed-traffic`
+
+From the repository root, run the following command (just specify the items in <>):
+
+`CUDA_VISIBLE_DEVICES=all,the,gpus python cpc/train.py --pathDB <PATH-TO-TRACE-FILE> --pathCheckpoint <WHERE-CHECKPOINTS-ARE-SAVED> --pathTrain pathTrain --pathVal pathVal --file_extension file_extension --normMode batchNorm --rnnMode linear --batchSizeGPU 8 --save_step 50 --hiddenGar <EMBEDDING_NUM_DIMS> --nEpoch 20000`
+
+If starting from an existing checkpoint, add the following two flags:
+`--load <PATH TO .pt FILE> --loadCriterion`
+
+
+
+==================
+
 This code implements the Contrast Predictive Coding algorithm on audio data, as described in the paper [Unsupervised Pretraining Transfers well Across Languages](https://arxiv.org/abs/2002.02848). This is an unsupervised method to train audio features directly from the raw waveform.
 
 Moreover, this code also implements all the evaluation metrics used in the paper:
