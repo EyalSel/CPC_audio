@@ -30,7 +30,8 @@ class FeatureModule(torch.nn.Module):
     def forward(self, data):
 
         batchAudio, label = data
-        cFeature, encoded, _ = self.featureMaker(batchAudio.cuda(), label)
+        # cFeature, encoded, _ = self.featureMaker(batchAudio.cuda(), label)
+        cFeature, encoded, _ = self.featureMaker(batchAudio, label)
         if self.get_encoded:
             cFeature = encoded
         if self.collapse:
