@@ -292,7 +292,9 @@ def main(args):
     #                               len(speakers),
     #                               nProcessLoader=args.n_process_loader,
     #                               MAX_SIZE_LOADED=args.max_size_loaded)
-    trainDataset = OverfitWaikatoSnippet()
+    # contents = np.load("/shared_volume/preprocessed_w_va.npy")
+    contents = np.load(args.pathDB)
+    trainDataset = OverfitWaikatoSnippet(contents)
     print("Training dataset loaded")
     print("")
 
@@ -303,7 +305,7 @@ def main(args):
     #                             phoneLabels,
     #                             len(speakers),
     #                             nProcessLoader=args.n_process_loader)
-    valDataset = OverfitWaikatoSnippet()
+    valDataset = OverfitWaikatoSnippet(contents)
     print("Validation dataset loaded")
     print("")
 

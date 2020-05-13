@@ -39,8 +39,10 @@ def get_dummy_data_loader(batch_size):
 
 
 class OverfitWaikatoSnippet(Dataset):
-    def __init__(self):
-        self.contents = np.load("/shared_volume/preprocessed_4m_waikato.npy")
+    def __init__(self, contents=None):
+        self.contents = contents
+        if self.contents is None:
+            self.contents = np.load("/shared_volume/preprocessed_4m_waikato.npy")
         self.contents = self.contents.astype(np.float32)
         self.seq_len = 160*128
 
