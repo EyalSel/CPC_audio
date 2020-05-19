@@ -19,6 +19,7 @@ import cpc.utils.misc as utils
 import cpc.feature_loader as fl
 from cpc.cpc_default_config import set_default_cpc_config
 from cpc.dataset import AudioBatchData, findAllSeqs, filterSeqs, parseSeqLabels
+import wandb
 
 from cpc.traffic_datasets import OverfitWaikatoSnippet
 
@@ -231,6 +232,7 @@ def run(trainDataset,
 
 def main(args):
     args = parseArgs(args)
+    wandb.init(config=vars(args), project="Traffic-CPC")
 
     utils.set_seed(args.random_seed)
     logs = {"epoch": [], "iter": [], "saveStep": args.save_step}

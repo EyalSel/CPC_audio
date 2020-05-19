@@ -10,6 +10,7 @@ import sys
 import psutil
 from copy import deepcopy
 from bisect import bisect_left
+import wandb
 
 
 def untensor(d):
@@ -43,6 +44,8 @@ def show_logs(text, logs):
     print('-'*50)
     print(text)
 
+    wandb_update = {}
+
     for key in logs:
 
         if key == "iter":
@@ -56,6 +59,11 @@ def show_logs(text, logs):
 
         strLog = [key] + ["{:10.6f}".format(s) for s in logs[key]]
         print(formatCommand.format(*strLog))
+
+        keys = [str(s) for s in range(1, nPredicts + 1)]
+        wandb_update[key] = {k: v for k, v in zip(keys, logs[key])}
+
+    wandb.log(wandb_update)
 
     print('-'*50)
 
