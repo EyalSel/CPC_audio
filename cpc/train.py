@@ -21,7 +21,7 @@ from cpc.cpc_default_config import set_default_cpc_config
 from cpc.dataset import AudioBatchData, findAllSeqs, filterSeqs, parseSeqLabels
 import wandb
 
-from cpc.traffic_datasets import OverfitWaikatoSnippet
+from cpc.traffic_datasets import CombinedDatasetObject
 
 
 def getCriterion(args, downsampling, nSpeakers, nPhones):
@@ -295,8 +295,7 @@ def main(args):
     #                               nProcessLoader=args.n_process_loader,
     #                               MAX_SIZE_LOADED=args.max_size_loaded)
     # contents = np.load("/shared_volume/preprocessed_w_va.npy")
-    contents = np.load(args.pathDB)
-    trainDataset = OverfitWaikatoSnippet(contents)
+    trainDataset = CombinedDatasetObject(args.pathDB, mode="train")
     print("Training dataset loaded")
     print("")
 
@@ -307,7 +306,7 @@ def main(args):
     #                             phoneLabels,
     #                             len(speakers),
     #                             nProcessLoader=args.n_process_loader)
-    valDataset = OverfitWaikatoSnippet(contents)
+    valDataset = CombinedDatasetObject(args.pathDB, mode="validation")
     print("Validation dataset loaded")
     print("")
 
